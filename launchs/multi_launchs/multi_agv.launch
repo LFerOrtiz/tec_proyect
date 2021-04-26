@@ -1,0 +1,62 @@
+<launch>
+  <!-- No namespace here as we will share this description.
+       Access with slash at the beginning -->
+  <!-- <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model.urdf.xacro" /> -->
+
+  <!-- BEGIN ROBOT 1-->
+  <group ns="agv1">
+    <param name="tf_prefix" value="agv1" />
+    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model.urdf.xacro" />
+
+    <!-- send fake joint values -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+      <param name="use_gui" value="FALSE"/>
+    </node>
+
+    <!-- Combine joint values -->
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
+
+    <!-- Spawn the model in gazebo world -->
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
+      args="-x 11.5 -y -0.2 -z 0.0 -R 0.0 -P 0.0 -Y 3.14 -urdf -param robot_description -model AGV1" respawn="false" output="screen" />
+  </group>
+
+  <!-- BEGIN ROBOT 2-->
+  <group ns="agv2">
+    <param name="tf_prefix" value="agv2" />
+    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model_two.urdf.xacro" />
+
+    <!-- send fake joint values -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+      <param name="use_gui" value="FALSE"/>
+    </node>
+
+    <!-- Combine joint values -->
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
+
+    <!-- Spawn the model in gazebo world -->
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
+      args="-x 12.5 -y -0.2 -z 0.0 -R 0.0 -P 0.0 -Y 3.14 -urdf -param robot_description -model AGV2" respawn="false" output="screen" />    
+
+  </group> 
+
+  <!-- BEGIN ROBOT 3-->
+  <group ns="agv3">
+    <param name="tf_prefix" value="agv3" />
+    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model_three.urdf.xacro" />
+
+    <!-- send fake joint values -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+      <param name="use_gui" value="FALSE"/>
+    </node>
+
+    <!-- Combine joint values -->
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
+
+    <!-- Spawn the model in gazebo world -->
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
+      args="-x 13.5 -y -0.2 -z 0.0 -R 0.0 -P 0.0 -Y 3.14 -urdf -param robot_description -model AGV3" respawn="false" output="screen" />    
+    
+  </group>
+
+</launch>

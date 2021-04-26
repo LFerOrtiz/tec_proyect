@@ -1,0 +1,12 @@
+<launch>
+  <param name="/use_sim_time" value="true" />
+
+  <!-- start world -->
+  <node name="gazebo" pkg="gazebo_ros" type="gazebo" args="$(find tec_proyect)/worlds/almacen_descarga.world" respawn="false" output="screen" />
+
+  <!-- include our robots -->
+  <include file="$(find tec_proyect)/launchs/multi_launchs/multi_agv.launch"/>
+
+  <!-- Launch pyhton scripts -->
+  <!-- <node name = "camera_view" pkg = "tec_proyect" type = "camera_agv.py" output = "screen"/> -->
+</launch>

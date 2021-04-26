@@ -1,0 +1,13 @@
+<launch>
+  <!-- Almacen -->  
+  <arg name="map_file"   default="$(find tec_proyect)/maps/almacen_map.yaml" /> 
+
+  <!-- Hospital -->
+  <!-- <arg name="map_file"   default="$(find tec_proyect)/maps/hospital_map.yaml" />  -->
+
+  <!-- Laboratorio -->
+  <!-- <arg name="map_file"   default="$(find tec_proyect)/maps/laboratorio_map.yaml" />  -->
+
+  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)" respawn="true" /> 
+
+</launch>

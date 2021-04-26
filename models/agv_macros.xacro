@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/xacro">
+
+    <!-- ************************ Create wheels ************************ -->
+    <xacro:macro name = "wheelz" params = "name parent mass radius leng origin_xyz">
+        <link name="${name}_wheel">
+            <inertial>
+                <origin xyz = "0 0 0" rpy="0 1.5707 1.5707" />
+                <mass value="${mass}"/>
+                <inertia ixx="${mass * (3*radius*radius+(leng*leng))/12}" ixy="0" ixz="0"
+                         iyy = "${mass * (3*radius*radius+(leng*leng))/12}" iyz="0" 
+                         izz = "${mass * (radius*radius)/2}" />
+            </inertial>
+
+            <visual>
+                <origin xyz="0 0 0" rpy="0 1.5707 1.5707" />
+                <geometry>
+                    <cylinder length="${leng}" radius="${radius}"/>
+                </geometry>
+                <material name="Black"/>
+            </visual>
+
+            <collision>
+                <origin xyz = "0 0 0" rpy="0 1.5707 1.5707" />
+                <geometry>
+                    <cylinder length="${leng}" radius="${radius}"/>
+                </geometry>
+                
+                <surface>
+                    <friction>
+                        <kp>1000000.0</kp> <!-- kp and kd for rubber -->
+                        <kd>100.0</kd>
+                        <mu>1.0</mu>
+                        <mu2>1.0</mu2>
+                        <slip1>0.5</slip1>
+                        <slip2>0.0</slip2>
+                        <maxVel>1.0</maxVel>
+                        <minDepth>0.00</minDepth>
+                    </friction>
+                </surface>
+            </collision>
+        </link>
+
+        <joint name="${name}_wheel_joint" type="continuous">
+            <origin xyz="${origin_xyz}" rpy="0 0 0" />
+            <child link="${name}_wheel"/>
+            <parent link="${parent}"/>
+            <axis xyz="0 1 0" rpy="0 0 0"/>
+            <limit effort="10000" velocity="5.0"/>
+            <joint_properties damping="1.0" friction="1.0"/>
+        </joint>
+    </xacro:macro>
+
+    <!-- ************************ Create joints for wheels ************************ -->
+    <!-- <xacro:macro name="jointz" params="name parent child origin_xyz">
+        <joint name="${name}" type="continuous">
+            <origin xyz="${origin_xyz}" rpy="0 0 0" />
+            <child link="${child}"/>
+            <parent link="${parent}"/>
+            <axis xyz="0 1 0" rpy="0 0 0"/>
+            <limit effort="10000" velocity="5.0"/>
+            <joint_properties damping="1.0" friction="1.0"/>
+        </joint>
+    </xacro:macro> -->
+
+</robot>

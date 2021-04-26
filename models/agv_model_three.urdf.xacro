@@ -1,0 +1,268 @@
+<?xml version='1.0'?>
+<robot name="agv" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find tec_proyect)/models/agv_macros.xacro" />
+    <xacro:include filename="$(find tec_proyect)/models/agv_plugins.gazebo" />
+
+    <!-- Scale the robot size to fit the environment -->
+    <xacro:property name="scale" value="1.0" />
+
+    <!-- Length along X-axis, Width along Y-axis, Height along Z-axis -->
+    <xacro:property name="chasis_width" value="${scale * 0.5}" />
+    <xacro:property name="chasis_length" value="${scale * 0.5}" />
+    <xacro:property name="chasis_height" value="${scale * 0.3}" />
+    <xacro:property name="chasis_mass" value="${scale * 50}" />
+
+    <xacro:property name="base_x_offset" value="0.0" />
+
+    <xacro:property name="chasis_x_pos" value="${base_x_offset/1.0}" />
+    <xacro:property name="chasis_z_pos" value="${chasis_height/3.0}" />
+
+    <xacro:property name="M_PI" value="3.1415926535897931" />
+
+    <!-- ************************ inertia = 1/12*m(h^2+d^2) ************************ -->
+    <xacro:property name="height_2" value="${chasis_height * chasis_height}" />
+    <xacro:property name="width_2" value="${chasis_width * chasis_width}" />
+    <xacro:property name="length_2" value="${chasis_length * chasis_length}" />
+    <xacro:property name="chasis_inertia_xx" value="${chasis_mass/12.0 * (height_2 + width_2)}" />
+    <xacro:property name="chasis_inertia_yy" value="${chasis_mass/12.0 * (height_2 + length_2)}" />
+    <xacro:property name="chasis_inertia_zz" value="${chasis_mass/12.0 * (width_2 + length_2)}" />
+
+    <xacro:property name="chasis_frame_width" value="${chasis_width - 2.1 * wheel_length}" />
+    <xacro:property name="chasis_frame_length" value="${chasis_length*1.2}" />
+    <xacro:property name="chasis_frame_height" value="${chasis_height/4.0}" />
+
+    <xacro:property name="hardware_width" value="${chasis_frame_width/1.0}" />
+    <xacro:property name="hardware_length" value="${0.15}" />
+    <xacro:property name="hardware_height" value="${chasis_height/2.5}" />
+    <xacro:property name="hardware_z_offset" value="${hardware_height/2.0}" />
+    <xacro:property name="hardware_x_offset" value="${base_x_offset + (chasis_length/2.0) - (hardware_length/8.5)}" />
+
+    <xacro:property name="hardware_length_back" value="${0.1}" />
+    <xacro:property name="hardware_height_2" value="${chasis_height/1.8}" />
+    <xacro:property name="hardware_z_offset_2" value="${hardware_height_2/2.0}" />
+    <xacro:property name="hardware_minx_offset" value="${base_x_offset + -1.0*(chasis_length/2.0) - (hardware_length_back/8.5)}" />
+
+    <xacro:property name="artag_x_pos" value= "${hardware_minx_offset - 0.05}" />
+
+    <!-- ************************ Wheels parameters ************************ -->
+    <xacro:property name="wheel_length" value="${scale * 0.05}" />
+    <xacro:property name="wheel_radius" value="${scale * 0.08}" />
+    <xacro:property name="wheel_mass" value="${scale * 1.5}" />
+    <xacro:property name="wheel_x_offset" value="${base_x_offset + chasis_length/2.0}" />
+    <xacro:property name="wheel_y_offset" value="${chasis_width/2.0 - wheel_length/2.0}" />
+
+    <!-- ************************ camera parameters ************************ -->
+    <xacro:property name="camera_width" value="0.05" />
+    <xacro:property name="camera_length" value="0.05" />
+    <xacro:property name="camera_height" value="0.05" />
+    <xacro:property name="camera_x_offset" value="${hardware_length/2.0 + hardware_x_offset - camera_length/2.0 + 0.001}" />
+    <xacro:property name="camera_z_offset" value="${hardware_height - camera_height/2.0 + 0.001}" />
+
+    <!-- ************************ Laser parameters ************************ -->
+    <xacro:property name="laser_width" value="0.1" />
+    <xacro:property name="laser_length" value="0.1" />
+    <xacro:property name="laser_height" value="0.1" />
+    <xacro:property name="laser_x_offset" value="${hardware_x_offset}" />
+    <xacro:property name="laser_z_offset" value="${hardware_height + 0.025}" />
+
+    <!-- ************************ Chasis ************************ -->
+    <link name="base_link"></link>
+
+    <joint name="base_link_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="chasis" />
+    </joint>
+
+    <!-- ************************ Chasis of avg ************************ -->
+    <link name='chasis'>
+        <inertial>
+            <mass value="${chasis_mass}"/>
+            <origin xyz="${chasis_x_pos} 0 ${chasis_z_pos}" rpy=" 0 0 0"/>
+            <inertia
+            ixx="${chasis_inertia_xx}" ixy="0" ixz="0"
+            iyy="${chasis_inertia_yy}" iyz="0"
+            izz="${chasis_inertia_zz}" />
+        </inertial>
+
+        <collision>
+            <origin xyz="${base_x_offset} 0 0" rpy=" 0 0 0"/>
+            <geometry>
+                <box size="${chasis_frame_length} ${chasis_frame_width} ${chasis_frame_height}"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="${base_x_offset} 0 0" rpy=" 0 0 0"/>
+            <geometry>
+                <box size="${chasis_frame_length} ${chasis_frame_width} ${chasis_frame_height}"/>
+            </geometry>
+        </visual>
+
+        <!-- ************************ circular part of chasis ************************ -->
+        <collision>
+            <origin xyz="${base_x_offset} 0 0" rpy=" 0 0 0"/>
+            <geometry>
+                <cylinder radius="${chasis_width/2.0}" length="${chasis_frame_height}"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="${base_x_offset} 0 0" rpy=" 0 0 0"/>
+            <geometry>
+                <cylinder radius="${chasis_width/2.0}" length="${chasis_frame_height}"/>
+            </geometry>
+        </visual>
+
+        <!-- ************************ box for the hardware ************************ -->
+        <collision>
+            <origin xyz="${hardware_x_offset} 0 ${hardware_z_offset}" rpy=" 0 0 0"/>
+            <geometry>
+                <box size="${hardware_length} ${hardware_width} ${hardware_height}"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="${hardware_x_offset} 0 ${hardware_z_offset}" rpy=" 0 0 0"/>
+            <geometry>
+                <box size="${hardware_length} ${hardware_width} ${hardware_height}"/>
+            </geometry>
+        </visual>
+
+        <!-- ************************ box for back side ************************ -->
+        <collision>
+            <origin xyz="${hardware_minx_offset} 0 ${hardware_z_offset_2}" rpy=" 0 0 0"/>
+            <geometry>
+                <box size="${hardware_length_back} ${hardware_width} ${hardware_height_2}"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="${hardware_minx_offset} 0 ${hardware_z_offset_2}" rpy=" 0 0 0"/>
+            <geometry>
+                <box size="${hardware_length_back} ${hardware_width} ${hardware_height_2}"/>
+            </geometry>
+        </visual>
+
+        <!-- ************************ box for ARTag ************************ -->
+        <collision>
+            <origin xyz="${artag_x_pos} 0 ${hardware_z_offset}" rpy="-1.5707 0 1.5707" />
+            <geometry>
+                <mesh filename="package://tec_proyect/meshes/aruco3.dae" /> 
+            </geometry>
+        </collision>
+
+        <visual name="artag_agv_visual">
+            <origin xyz="${artag_x_pos} 0 ${hardware_z_offset}" rpy="-1.5707 0 1.5707" />
+            <geometry>
+                <mesh filename="package://tec_proyect/meshes/aruco3.dae" /> 
+            </geometry>
+        </visual>
+    </link>
+
+    <!-- ************************ camera ************************ -->
+    <joint name="camera_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <parent link="chasis"/>
+        <child link="camera_link"/>
+    </joint>
+
+    <link name="camera_link">
+        <inertial>
+            <mass value="0.1"/>
+            <origin xyz="0 0 0" rpy=" 0 0 0"/>
+            <inertia
+                ixx="1e-6" ixy="0" ixz="0"
+                iyy="1e-6" iyz="0"
+                izz="1e-6"/>
+        </inertial>
+
+        <collision name="camera_collision">
+            <origin xyz="0 0 0" rpy=" 0 0 0"/>
+            <geometry>
+                <box size="${camera_length} ${camera_width} ${camera_height}"/>
+            </geometry>
+        </collision>
+
+        <visual name="camera_visual">
+            <origin xyz="0 0 0" rpy=" 0 0 0"/>
+            <geometry>
+                <box size="${camera_length} ${camera_width} ${camera_height}"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="camera_rgb_joint" type="fixed">
+        <origin xyz="${camera_x_offset} 0 ${camera_z_offset}" rpy="0 0 0"/>
+        <parent link="camera_link"/>
+        <child link="camera_rgb_frame"/>
+    </joint>
+    <link name="camera_rgb_frame"/>
+
+    <joint name="camera_rgb_optical_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="-1.57 0 -1.57"/>
+        <parent link="camera_rgb_frame"/>
+        <child link="camera_rgb_optical_frame"/>
+    </joint>
+    
+    <link name="camera_rgb_optical_frame">
+        <visual>
+            <geometry>
+                <box size="${camera_length} ${camera_width} ${camera_height}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${camera_length} ${camera_width} ${camera_height}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- ************************ Laser ************************ -->
+    <link name='hokuyo'>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+            <mass value="0.1"/>
+            <origin xyz="0 0 0" rpy=" 0 0 0"/>
+            <inertia
+                ixx="1e-6" ixy="0" ixz="0"
+                iyy="1e-6" iyz="0"
+                izz="1e-6" />
+        </inertial>
+
+        <collision name='hokuyo_collision'>
+            <origin xyz="0 0 0" rpy=" 0 0 0"/>
+            <geometry>
+                <box size="${laser_length} ${laser_width} ${laser_height}"/>
+            </geometry>
+        </collision>
+
+        <visual name='hokuyo_visual'>
+            <origin xyz="0 0 0" rpy=" 0 0 0"/>
+            <geometry>
+                <mesh filename="package://tec_proyect/meshes/hokuyo.dae"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint type="fixed" name="hokuyo_joint">
+        <origin xyz="${laser_x_offset} 0 ${laser_z_offset}" rpy="0 0 0"/>
+        <child link="hokuyo"/>
+        <parent link="chasis"/>
+        <axis xyz="0 1 0" rpy="0 0 0"/>
+        <limit effort="10000" velocity="1000"/>
+        <joint_properties damping="1.0" friction="1.0"/>
+    </joint>
+
+
+    <!-- ************************ Wheelz and Jointz ************************ -->
+    <xacro:wheelz name = "back_right" parent="chasis" mass="${wheel_mass}" radius="${wheel_radius}" leng="${wheel_length}" origin_xyz="-${wheel_x_offset} -${wheel_y_offset} 0.0" />
+
+    <xacro:wheelz name = "back_left" parent="chasis" mass="${wheel_mass}" radius="${wheel_radius}" leng="${wheel_length}" origin_xyz="-${wheel_x_offset} ${wheel_y_offset} 0.0" />
+
+    <xacro:wheelz name = "front_right" parent="chasis" mass="${wheel_mass}" radius="${wheel_radius}" leng="${wheel_length}" origin_xyz="${wheel_x_offset} -${wheel_y_offset} 0.0" />
+
+    <xacro:wheelz name = "front_left" parent="chasis" mass="${wheel_mass}" radius="${wheel_radius}" leng="${wheel_length}" origin_xyz="${wheel_x_offset} ${wheel_y_offset} 0.0" />
+
+</robot>

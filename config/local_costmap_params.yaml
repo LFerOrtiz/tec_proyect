@@ -1,0 +1,12 @@
+local_costmap:
+   # global_frame: /map
+   # robot_base_frame: agv1/base_link
+   update_frequency: 10.0
+   publish_frequency: 10.0
+   width: 8.0
+   height: 8.0
+   resolution: 0.02
+   static_map: false
+   rolling_window: true                         # Keep the costmap centered on the robot when it is moving around the world
+   planner_frequency: 1.0                       # Rate in Hz at which to run the planning loop
+   planner_patiente: 5.0                        # Wait in seconds in an attempt to find a valid plan

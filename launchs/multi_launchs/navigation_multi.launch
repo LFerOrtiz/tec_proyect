@@ -1,0 +1,20 @@
+<launch>
+    <param name="/use_sim_time" value="true"/>
+
+    <!-- Run the map server -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find tec_proyect)/maps/almacen_map.yaml" >
+        <param name="frame_id" value="map" />
+    </node>
+
+    <!-- AMCL launch for each agv -->
+    <include file="$(find tec_proyect)/launchs/amcl_launchs/amcl_agv1.launch" />
+    <include file="$(find tec_proyect)/launchs/amcl_launchs/amcl_agv2.launch" />
+    <include file="$(find tec_proyect)/launchs/amcl_launchs/amcl_agv3.launch" />
+
+    <!-- Running Rviz -->
+    <!--<node pkg="rviz" type="rviz" name="rviz" args="-d $(find tec_proyect)/rviz/rviz_multi.rviz"/>-->
+
+    <!-- Python Scripts -->
+    <node name="agv2_controller" pkg="tec_proyect" type="agv2_controller.py" output="screen"/>
+    <node name="agv3_controller" pkg="tec_proyect" type="agv3_controller.py" output="screen"/>
+</launch>

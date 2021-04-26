@@ -1,0 +1,43 @@
+<launch>
+  <include file="$(find tec_proyect)/launchs/single_launch/robot_description.launch"/>
+
+  <!-- Base file, empty world -->
+  <!-- Almacen -->
+  <!-- <arg name="world_name" default="$(find tec_proyect)/worlds/almacen_descarga.world"/> -->
+
+  <!-- Hospital -->
+  <arg name="world_name" default="$(find tec_proyect)/worlds/hospital.world"/>
+
+  <!-- Laboratorio -->
+  <!-- <arg name="world_name"    default="$(find tec_proyect)/worlds/laboratorio.world"/> -->
+
+  <arg name="paused"        default="false"/>
+  <arg name="use_sim_time"  default="true"/>
+  <arg name="gui"           default="true"/>
+  <arg name="headless"      default="false"/>
+  <arg name="debug"         default="false"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">                       <!-- base file -->
+    <arg name="world_name"    value="$(arg world_name)"/>   <!-- world file -->
+    <arg name="paused"        value = "$(arg paused)" />
+    <arg name="use_sim_time"  value = "$(arg use_sim_time)" />
+    <arg name="gui"           value = "$(arg gui)" />
+    <arg name="headless"      value = "$(arg headless)" />
+    <arg name="debug"         value = "$(arg debug)" />
+  </include>
+
+  <!-- spawn robot in gazebo world with a initial pose -->
+  <!-- XYZ: meters, Yaw: radian-->
+  <node 
+    name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" 
+    args="-param robot_description -urdf -model agv" />
+
+  <!-- Launch Rviz and the config file -->
+  <node pkg="rviz" type="rviz" name="rviz" required="true"
+        args="-d $(find tec_proyect)/rviz/rviz_mapping.rviz"/>
+  <!-- <node name="rviz" pkg="rviz" type="rviz" args=""/>   -->
+
+  <!-- SLAM using Gmapping -->
+  <!-- <include file="$(find tec_proyect)/launchs/hector_map.launch"/> -->
+
+</launch>

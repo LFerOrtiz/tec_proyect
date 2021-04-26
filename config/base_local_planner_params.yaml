@@ -1,0 +1,20 @@
+TrajectoryPlannerROS:
+  max_vel_x: 0.75               # Maximum lineal velocity
+  min_vel_x: 0.1                # Minimum lineal velocity
+  max_vel_theta: 0.5            # Maximum angular velocity
+
+  min_in_place_vel_theta: 0.25  # Minimum angular velocity that will be set by trajectory planner    
+  escape_vel: -0.2              # Delimits the driving speed during escapes. Its noteworthy that this value should be negative for reverse.
+
+  acc_lim_theta: 0.25           # Maximum values of accelerations used by trajectory planner
+  acc_lim_x: 0.25 
+  acc_lim_y: 0.25
+
+  sim_time: 4
+
+  meter_scoring: true           # Defines if cost function arguments are expressed in map cells or meters (true: meters)
+  holonomic_robot: false        # Defines if the type of robot: holonomic or non-holonomic
+
+  xy_goal_tolerance: 0.10       # Distance tolerance for reaching the goal pose
+  yaw_goal_tolerance: 0.10      # Orientation tolerance for reaching the desired goal pose
+
