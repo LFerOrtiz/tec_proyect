@@ -99,8 +99,8 @@ def frame_callback(ros_frame):
         height, width, channels = cv_frame.shape
 
         # Camera matrix for calibration (ideal camera)
-        # camera_matrix = np.mat([[1.0, 0.0, height / 2.0], [0.0, 1.0, width / 2.0], [0.0, 0.0, 1.0]])
-        # camera_distortion = np.mat([0.0, 0.0, 0.0, 0.0, 0.0])
+        camera_matrix = np.mat([[1.0, 0.0, height / 2.0], [0.0, 1.0, width / 2.0], [0.0, 0.0, 1.0]])
+        camera_distortion = np.mat([0.0, 0.0, 0.0, 0.0, 0.0])
 
         gray = cv2.cvtColor(cv_frame, cv2.COLOR_BGR2GRAY)  # Convert to gray scale
         gray = cv2.GaussianBlur(gray, K_SIZE, 0)  # Applied a Gaussian Filter for High frequency noise

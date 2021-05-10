@@ -39,7 +39,7 @@
     <include file="$(find tec_proyect)/launchs/single_launch/robot_description.launch"/>
 
     <!-- Spawn a robot into Gazebo -->
-    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model simple_camera" />
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model simple_model" />
 
     <node name="spawn_sdf" pkg="gazebo_ros" type="spawn_model" args="-file $(find tec_proyect)/models/small_checkerboard.sdf -sdf -model small_checkerboard -x 1.0 -y -0.03 -z 1.0 -R 0.0 -P -1.5707 -Y 0.0" />
 </launch>

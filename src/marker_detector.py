@@ -17,6 +17,7 @@ class MarkerDetector:
         self.marker_dict = None
         self.corners = None
         self.ids = None
+        self.tag_lose = False
 
         # -- Frame info
         self.height = 0
@@ -24,11 +25,11 @@ class MarkerDetector:
         self.channels = 0
 
         # -- Distance and angle average
-        self.dist_proyection_avr = 0
-        self.angle_avr = 0
-        self.sample = 0
+        self.filter = 0
         self.distance = 0
-        self.angle = 0
+        self.roll = 0
+        self.pitch = 0
+        self.yaw = 0
 
         # --- 180 deg rotation matrix around the X axis
         self.r_flip = np.zeros((3, 3), dtype=np.float32)
@@ -76,7 +77,7 @@ class MarkerDetector:
 
         return np.array([x, y, z])
 
-    def detection(self, frame, id_detect, show_frame):
+    def detection(self, frame, id_detect, show_frame, debug):
         """ Detect the marker indicate in the video frame
             X: Red Axis (Roll),
             Y: Green Axis (Pitch),
@@ -91,6 +92,7 @@ class MarkerDetector:
                                                                           parameters=self.parameters)
 
         if np.all(self.ids is not None) and self.ids[0] == id_detect:
+            self.tag_lose = False
             for item in range(0, len(self.ids)):
                 # rotationVect: Pose of the marker respect to camera frame
                 # translationVect: Position of the marker in camera frames
@@ -102,7 +104,7 @@ class MarkerDetector:
                 aruco.drawDetectedMarkers(frame, self.corners)  # Draw a square around the markers
                 aruco.drawAxis(frame, self.camera_matrix,  # Draw the axis in the video frame
                                self.camera_distortion,
-                               rotation_vet, translation_vet, 0.05)
+                               rotation_vet, translation_vet, 0.2)
 
                 # --- Find the center of the marker and draw the ID
                 center_x = (self.corners[item][0][0][0] + self.corners[item][0][1][0] + self.corners[item][0][2][0] +
@@ -119,34 +121,25 @@ class MarkerDetector:
                 r_tc = r_ct.T  # Transpose of the matrix
 
                 # --- Get the attitude in terms of euler 321 (Flip first)
-                roll_marker, pitch_marker, yaw_marker = self._rotation_matrix_to_euler_angles(self.r_flip * r_tc)
+                self.roll, self.pitch, self.yaw = self._rotation_matrix_to_euler_angles(self.r_flip * r_tc)
 
-                # -- Calculated the average of the distance and angle
-                if self.sample < 5:
-                    self.distance += np.sqrt(translation_vet[0] ** 2 + translation_vet[1] ** 2 + translation_vet[2] ** 2)
-                    self.angle += pitch_marker
-                    self.sample += 1.0
-                else:
-                    self.angle = self.angle / self.sample
-                    self.distance = self.distance / self.sample
-                    self.dist_proyection_avr = self.distance
-                    self.angle_avr = self.angle
-                    self.distance = 0
-                    self.sample = 0
+                # -- Calculated the moving average
+                self.distance = np.sqrt(translation_vet[0] ** 2 + translation_vet[1] ** 2 + translation_vet[2] ** 2)
 
                 # --- Show general info of distance and angles of the marker
-                str_angle = "Angle: %3.4f" % np.degrees(self.angle_avr)
-                cv2.putText(frame, str_angle, (0, 400), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
-                str_distance = "Distance: %3.4f" % self.dist_proyection_avr
-                cv2.putText(frame, str_distance, (0, 420), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
+                if debug:
+                    str_angle = "Angle: %3.4f" % math.degrees(self.pitch)
+                    cv2.putText(frame, str_angle, (0, 400), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
+                    str_distance = "Distance: %3.4f" % self.distance
+                    cv2.putText(frame, str_distance, (0, 420), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
 
-                # --- X: Red Axis (Roll), Y: Green Axis (Pitch), Z: Blue Axis (Yaw)
-                str_position = "Marker position X=%3.2f  Y=%3.2f  Z=%3.2f" % (
-                    translation_vet[0], translation_vet[1], translation_vet[2])
-                cv2.putText(frame, str_position, (0, 435), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
-                str_attitude = "Marker Attitude R=%3.2f  P=%3.2f  Y=%3.2f" % (
-                    math.degrees(roll_marker), math.degrees(pitch_marker), math.degrees(yaw_marker))
-                cv2.putText(frame, str_attitude, (0, 450), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
+                    # --- X: Red Axis (Roll), Y: Green Axis (Pitch), Z: Blue Axis (Yaw)
+                    str_position = "Marker position X=%3.2f  Y=%3.2f  Z=%3.2f" % (
+                        translation_vet[0], translation_vet[1], translation_vet[2])
+                    cv2.putText(frame, str_position, (0, 440), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
+                    str_attitude = "Marker Attitude R=%3.2f  P=%3.2f  Y=%3.2f" % (
+                        math.degrees(self.roll), math.degrees(self.pitch), math.degrees(self.yaw))
+                    cv2.putText(frame, str_attitude, (0, 460), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
 
                 # --- Position and attitude of the camera respect to the marker
                 # camera_pose = -R_ct * np.matrix(translation_vet).T
@@ -155,9 +148,11 @@ class MarkerDetector:
                 # cv2.putText(cv_frame, str_position, (0, 460), FONT, 0.5, (0, 25, 255), 2, cv2.LINE_AA)
                 # str_attitude = "Camera Attitude R=%3.2f  P=%3.2f  Y=%3.2f"%(math.degrees(roll_camera), math.degrees(pitch_camera), math.degrees(yaw_camera))
                 # cv2.putText(cv_frame, str_attitude, (0, 475), FONT, 0.5, (0, 25, 255), 2, cv2.LINE_AA)
+        else:
+            self.tag_lose = True
 
         if show_frame:
             cv2.imshow("Tag", frame)
             cv2.waitKey(10)
 
-        return frame
+        return frame, self.tag_lose

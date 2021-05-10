@@ -1,0 +1,27 @@
+<launch>
+  <param name="/use_sim_time" value="true" />
+
+  <!-- start world -->
+  <!-- Base file, empty world -->
+  <arg name="world" default="empty"/>
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">                       <!-- base file -->
+    <arg name="world_name" value="$(find tec_proyect)/worlds/empty_world.world"/>     <!-- world file -->
+    <arg name="paused" value = "$(arg paused)" />
+    <arg name="use_sim_time" value = "$(arg use_sim_time)" />
+    <arg name="gui" value = "$(arg gui)" />
+    <arg name="headless" value = "$(arg headless)" />
+    <arg name="debug" value = "$(arg debug)" />
+  </include>
+
+  <!-- include our robots -->
+  <include file="$(find tec_proyect)/launchs/multi_launchs/multi_agv.launch"/>
+
+  <!-- Launch pyhton scripts -->
+  <!-- <node name = "camera_view" pkg = "tec_proyect" type = "camera_agv.py" output = "screen"/> -->
+</launch>

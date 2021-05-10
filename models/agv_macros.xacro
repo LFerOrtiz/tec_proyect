@@ -28,14 +28,15 @@
                 
                 <surface>
                     <friction>
-                        <kp>1000000.0</kp> <!-- kp and kd for rubber -->
-                        <kd>100.0</kd>
-                        <mu>1.0</mu>
-                        <mu2>1.0</mu2>
-                        <slip1>0.5</slip1>
+                        <kp>10000000.0</kp> <!-- kp and kd for rubber -->
+                        <kd>1.0</kd>
+                        <mu>1.0</mu>    <!-- Coulomb friction mus-->
+                        <mu2>1.0</mu2>  <!-- Friction coefficient muk-->
+                        <fdir1>1 0 0</fdir1>
+                        <slip1>0.0</slip1>
                         <slip2>0.0</slip2>
                         <maxVel>1.0</maxVel>
-                        <minDepth>0.00</minDepth>
+                        <minDepth>0.001</minDepth>
                     </friction>
                 </surface>
             </collision>

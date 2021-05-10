@@ -11,7 +11,7 @@
     <xacro:property name="chasis_width" value="${scale * 0.5}" />
     <xacro:property name="chasis_length" value="${scale * 0.5}" />
     <xacro:property name="chasis_height" value="${scale * 0.3}" />
-    <xacro:property name="chasis_mass" value="${scale * 50}" />
+    <xacro:property name="chasis_mass" value="${scale * 25}" />
 
     <xacro:property name="base_x_offset" value="0.0" />
 

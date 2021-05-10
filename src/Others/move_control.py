@@ -9,6 +9,7 @@ import time
 detec_field = 0
 state = 0
 
+
 # *************************************** Funtions ***************************************
 def LaserScanCallBack(scan_data):
     """ Callback funtion for laser scan """
@@ -29,15 +30,19 @@ def move(detec_field):
     global state
     min_distance = 2.0
 
-    if detec_field["front"] > min_distance and (detec_field["front_right"]  and detec_field["front_left"]) > min_distance:
+    if detec_field["front"] > min_distance and (
+            detec_field["front_right"] and detec_field["front_left"]) > min_distance:
         state = 1
-    elif detec_field["front"] < min_distance and detec_field["front_right"] < min_distance and detec_field["front_left"] > min_distance:
+    elif detec_field["front"] < min_distance and detec_field["front_right"] < min_distance and detec_field[
+        "front_left"] > min_distance:
         state = 2
-    elif detec_field["front"] < min_distance and detec_field["front_right"] > min_distance and detec_field["front_left"] < min_distance:
+    elif detec_field["front"] < min_distance and detec_field["front_right"] > min_distance and detec_field[
+        "front_left"] < min_distance:
         state = 3
-    elif detec_field["front"] < min_distance and (detec_field["front_right"] and detec_field["front_left"]) < min_distance:
+    elif detec_field["front"] < min_distance and (
+            detec_field["front_right"] and detec_field["front_left"]) < min_distance:
         state = 0
-    
+
 
 def stop():
     """ Make stop the agv """
@@ -49,19 +54,21 @@ def stop():
 def linear_move():
     """ Make the agv move in straight line """
     vel_msg = Twist()
-    vel_msg.linear.x = abs(0.8)         # Velocity of 0.5 m/s
+    vel_msg.linear.x = abs(0.8)  # Velocity of 0.5 m/s
     return vel_msg
+
 
 def back_move():
     """ Make the agv move in straight line """
     vel_msg = Twist()
-    vel_msg.linear.x = -abs(0.8)         # Velocity of 0.5 m/s
+    vel_msg.linear.x = -abs(0.8)  # Velocity of 0.5 m/s
     return vel_msg
+
 
 def turn_left():
     """ Make the avg turn to the left """
     vel_msg = Twist()
-    vel_msg.linear.x = -abs(0.8)         # Velocity of 0.5 m/s
+    vel_msg.linear.x = -abs(0.8)  # Velocity of 0.5 m/s
     vel_msg.angular.z = 8.5
     return vel_msg
 
@@ -69,7 +76,7 @@ def turn_left():
 def turn_right():
     """ Make the avg turn to the left """
     vel_msg = Twist()
-    vel_msg.linear.x = -abs(0.5)         # Velocity of 0.5 m/s
+    vel_msg.linear.x = -abs(0.5)  # Velocity of 0.5 m/s
     vel_msg.angular.z = -8.5
     return vel_msg
 
@@ -88,8 +95,7 @@ def main():
     # vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=25)
     # laser_sub = rospy.Subscriber("/scan", LaserScan, LaserScanCallBack)
 
-
-    rate_fresh = rospy.Rate(120)         #120 Hz
+    rate_fresh = rospy.Rate(120)  # 120 Hz
 
     while not rospy.is_shutdown():
         if state == 1:
@@ -103,8 +109,6 @@ def main():
             msg = stop()
             msg = back_move()
             state = 2
-            
-
 
         vel_pub.publish(msg)
         rate_fresh.sleep()
@@ -116,6 +120,3 @@ if __name__ == '__main__':
         main()
     except rospy.ROSInternalException:
         rospy.loginfo("Error en inicializar.")
-
-
-    
