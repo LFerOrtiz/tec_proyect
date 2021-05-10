@@ -9,9 +9,10 @@ project(tec_proyect)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   controller_manager
-  gazebo_ros
+  message_generation
   joint_state_publisher
   robot_state_publisher
+  gazebo_ros
   roscpp
   rospy
   rviz
@@ -52,18 +53,16 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+   FILES
+   sensor_distance.msg
+)
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+   FILES
+   platoon_status.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -73,10 +72,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   std_msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -108,10 +107,11 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES tec_proyect
-#  CATKIN_DEPENDS controller_manager gazebo_ros joint_state_publisher robot_state_publisher roscpp rospy rviz std_msgs
-#  DEPENDS system_lib
+  INCLUDE_DIRS include
+  LIBRARIES tec_proyect
+  CATKIN_DEPENDS controller_manager gazebo_ros joint_state_publisher robot_state_publisher roscpp rospy rviz std_msgs
+  DEPENDS system_lib
+  DEPENDS message_runtime
 )
 
 ###########

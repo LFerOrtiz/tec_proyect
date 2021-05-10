@@ -2,22 +2,23 @@
 # coding=utf-8
 import numpy as np
 import rospy
-import tf
 
+from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
 from cv_bridge import CvBridge, CvBridgeError
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, Quaternion
 from marker_detector import MarkerDetector
 from sensor_msgs.msg import Image
+from tf.transformations import euler_from_quaternion
 
 # -- Constants for configuration of Aruco library
 KERNEL_SIZE = (3, 3)  # Kernel size for Gaussian Blur
 MARKER_LENGTH = 0.2  # Marker size in cm
-LEADER_TAG = 1 # ID of leader marker
+LEADER_TAG = 1  # ID of preceding marker
 
 # -- AGV parameters
 system_params = {
-    'm': 25.0,  # Mass of AGV
+    'm': 150.0,  # Mass of AGV
     'g': 9.81,  # Gravity force (m/s²)
     'Crr': 0.015,  # Coefficient of rolling friction
     'Cd': 0.80,  # Drag coefficient
@@ -26,24 +27,24 @@ system_params = {
 }
 
 # -- Constants for PID controller and variables
-SET_DISTANCE = 0.5
-SET_VELOCITY = 1.2
+SET_DISTANCE = 0.65
 MAX_SPEED = 1.20  # Max speed (m/s)
-REFRESH = 20  # Refresh rate
+REFRESH = 15  # Refresh rate
 INIT_SPEED = 0.00  # Initial speed (m/s)
-KP = 20.0  # Gain for proportional part
-KI = 0.2  # Gain for integral part
-KD = 5.0  # Gain for derivative part
+ALPHA = 0.2
 
-error_sum = 0
-dist_host_to_lead = 0
-past_actual = 0
-first_run = True
+dist_host_to_lead = 0.0
+pitch_angle = 0.0
+center_x = 0
+width = 0
 
 # CvBridge
 bridge = CvBridge()
 move = Twist()
 process_frame = None
+vel_pub = None
+camera_sub = None
+pose_agv2 = None
 
 # -- Get the calibration parameters of the camera
 info_camera = "/home/fer/catkin_ws/src/tec_proyect/info/"
@@ -54,9 +55,62 @@ camera_distortion = np.loadtxt(info_camera + 'cameraDistortion.txt', delimiter='
 marker_detection = MarkerDetector(MARKER_LENGTH, KERNEL_SIZE, camera_matrix, camera_distortion)
 
 
+class ControlPID:
+    def __init__(self, kp=0.0, ki=0.0, kd=0.0, dt=0.0):
+        """ Define the Gains for PID controller
+
+        :param kp: Gain for proportional part
+        :param ki: Gain for integral part
+        :param kd: Gain for derivative part
+        :param dt: Time step
+        """
+        self.dt = dt
+        self.kp = kp
+        self.ki = ki
+        self.kd = kd
+        self.past_error = 0
+        self.error = 0
+        self.sum_error = 0
+
+    def compute(self, actual, set_point, debug=False):
+        """ Compute the PID controller.
+
+        :param actual: Actual value
+        :param set_point: The set point for the PID
+        :param debug: Print the information about the PID and error
+        """
+
+        # Compute error
+        self.error = actual - set_point
+        self.sum_error = (self.error + self.sum_error) * self.dt
+
+        # Proportional error
+        p_output = self.kp * self.error
+        # Integral error
+        i_output = self.ki * self.sum_error * self.dt
+        # Derivative error
+        d_output = self.kd * ((self.error - self.past_error) / self.dt)
+        self.past_error = self.error
+
+        if debug:
+            print ("Error Sum: ", self.sum_error)
+            print ("Past error: ", self.past_error)
+            print ("Error: ", self.error)
+            print ("P: ", p_output)
+            print ("I: ", i_output)
+            print ("D: ", d_output)
+
+        output = p_output + i_output + d_output
+        return output
+
+
 def frame_callback(ros_frame):
-    """ Convert the image format of ROS to OpenCV format """
-    global bridge, process_frame, dist_host_to_lead
+    """
+    Callback function for read and convert the image format of ROS to OpenCV format.
+
+    :param ros_frame: Get the video frame in ROS format
+    """
+    global bridge, process_frame, dist_host_to_lead, pitch_angle, center_x, width
 
     try:
         # -- Convert the image format of ROS to OpenCV form
@@ -65,49 +119,54 @@ def frame_callback(ros_frame):
         print(e)
     else:
         # rospy.loginfo("Frame received")
-        marker_frame = marker_detection.detection(cv_frame, LEADER_TAG, True)
-        dist_host_to_lead = marker_detection.dist_proyection_avr
+        marker_frame = marker_detection.detection(cv_frame, LEADER_TAG, True, False)
+        dist_host_to_lead = marker_detection.distance
+        pitch_angle = marker_detection.pitch
+        center_x = marker_detection.center_x
+        width = marker_detection.width
+
+
+def lidar_scan_callback(scan_msg):
+    """
+    Callback function for laser scan.
+
+    :param scan_msg: Message with information of scan topic
+    """
+    detected_field = {
+        'fright': min(min(scan_msg.ranges[144:287]), 10),
+        'front':  min(min(scan_msg.ranges[288:431]), 10),
+        'fleft':  min(min(scan_msg.ranges[432:575]), 10),
+    }
+    # -- Calculated the moving average
+    lidar_filter = round((0.05 * detected_field["front"]) + ((1 - 0.05) * detected_field["front"]), 3)
+    # print("LIDAR: ", lidar_filter)
 
 
 def lead_odom_callback(msg):
     """ Callback function for odometry of lead vehicle"""
-    # print(msg)
-    pass
+    orientation_q = msg.pose.pose.orientation
+    orientation_list = [orientation_q.x, orientation_q.y,
+                        orientation_q.z, orientation_q.w]
+    (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
+    # rospy.loginfo("Yaw: %s", np.degrees(yaw))
 
 
-def compute_pid(actual, setpoint):
-    # Get the current safe distance in base of velocity of host AGV
-    global error_sum, past_actual, first_run
-
-    # Compute error
-    error = setpoint - actual
-    error_sum += error
-    print ("Error: ", error)
-
-    if first_run:
-        first_run = False
-        past_actual = actual
-
-    # Proportional error
-    p_output = KP * error
-    # Integral error
-    i_output = KI * error_sum
-    # Derivative error
-    d_output = KD * (dist_host_to_lead - past_actual)
-    past_error = error
-
-    print ("P: ", p_output)
-    print ("I: ", i_output)
-    print ("D: ", d_output)
-
-    output = p_output + d_output + i_output
-    return output
+def stop():
+    """
+    Callback function to stop the AGV when evoke shutdown.
+    """
+    twist = Twist()
+    twist.linear.x = 0.0
+    twist.linear.y = 0.0
+    twist.linear.z = 0.0
+    twist.angular.x = 0.0
+    twist.angular.y = 0.0
+    twist.angular.z = 0.0
+    vel_pub.publish(twist)
 
 
-def main():
-    # -- Global variables
-    global process_frame, REFRESH, SET_DISTANCE, system_params, dist_host_to_lead
-
+# -- Main function
+if __name__ == '__main__':
     # -- Create a node for agv2
     rospy.init_node('agv3_controller', anonymous=True)
 
@@ -116,70 +175,51 @@ def main():
     step_time = float(1.0 / REFRESH)
 
     # -- Topics
-    odom_agv1 = 'agv2/odom'  # Odom of AGV1
+    odom_agv1 = 'agv2/odom'                     # Odom of AGV1
     raw_camera_topic = 'agv3/camera/image_raw'  # Topic for the image from the camera
-    move_controller_topic = 'agv3/cmd_vel'  # Topic of move controller
+    lidar_scan_topic = 'agv3/scan'              # Topic for the scan of the lidar
+    move_controller_topic = 'agv3/cmd_vel'      # Topic of move controller
 
     # -- Subscribers and Publishers
-    # Define the publisher for the move controller topic
-    vel_pub = rospy.Publisher(move_controller_topic, Twist, queue_size=25)
+    vel_pub = rospy.Publisher(move_controller_topic, Twist, queue_size=5)
     camera_sub = rospy.Subscriber(raw_camera_topic, Image, frame_callback)  # Define the subscriber topic for camera
+    lidar_sub = rospy.Subscriber(lidar_scan_topic, LaserScan, lidar_scan_callback)
     pose_agv1 = rospy.Subscriber(odom_agv1, Odometry, lead_odom_callback)
 
-    # -- Initial parameters for move for the vehicle
-    move.linear.x = INIT_SPEED
-    move.angular.z = 0
-
-    # -- Variables for control and ACC
-    dist_host_to_lead = 0.0
-    host_accel = 0.0
-    host_vel = 0.0
-    max_accel = 2
-    min_accel = -2
-
-    while not rospy.is_shutdown():
-        # Get the current velocity oof AGV
-        host_vel = move.linear.x
-
-        # ACC control
-        if dist_host_to_lead >= SET_DISTANCE:
-            # Distance between the cars is greater than the safe distance (Speed Control)
-            print("Speed Control")
-            setpoint = SET_VELOCITY
-            control = compute_pid(host_vel, setpoint)
-        else:  # Maintain the safe distance (Spacing control mode)
-            print ("Spacing control")
-            control = compute_pid(dist_host_to_lead, SET_DISTANCE)
-
-        print ("Control: ", control)
-        # Final force
-        host_accel = 1 / system_params['m'] * (control - 1/2 * (system_params['rho'] * host_vel ** 2 *
-                                               system_params['A'] * system_params['Cd']) - (system_params['Crr'] *
-                                               system_params['m'] * system_params['g']))
-
-        if not(max_accel > host_accel > min_accel):
-            if host_accel >= 0:
-                host_accel = max_accel
-            else:
-                host_accel = min_accel
-
-        host_vel = host_accel * step_time
-
-        print("Host Accel: ", host_accel)
-        print("AGV3: ", host_vel)
-
-        move.linear.x = host_vel
-        move.angular.z = 0.0
-
-        # -- Send the update velocity
-        #vel_pub.publish(move)
-
-        rate_fresh.sleep()
-
-
-# -- Main function
-if __name__ == '__main__':
     try:
-        main()
+        # -- Initial parameters for move for the vehicle
+        pid_control = ControlPID(2.0, 0.00, 0.65, step_time)
+
+        move.linear.x = INIT_SPEED
+        move.angular.z = 0
+        distance_filter = 0
+        angle_filter = 0
+
+        while not rospy.is_shutdown():
+            # -- Get the current velocity of AGV
+            distance_filter = round((ALPHA * dist_host_to_lead) + ((1 - ALPHA) * distance_filter), 3)
+            angle_filter = round(((ALPHA * np.degrees(pitch_angle)) + ((1 - ALPHA) * angle_filter)), 3)
+            policy = SET_DISTANCE
+
+            # -- Control
+            control_signal = pid_control.compute(distance_filter, policy, False)
+
+            if control_signal < MAX_SPEED:
+                move.linear.x = control_signal
+            else:
+                if control_signal < 0:
+                    move.linear.x = -MAX_SPEED
+                else:
+                    move.linear.x = MAX_SPEED
+
+            err = center_x - width / 2
+            move.angular.z = -float(err) / 100
+
+            # -- Send the update velocity
+            vel_pub.publish(move)
+
+            rospy.on_shutdown(stop)
+            rate_fresh.sleep()
+
     except rospy.exceptions.ROSInterruptException:
         rospy.loginfo("Shutdown node")

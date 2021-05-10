@@ -28,14 +28,14 @@
                 
                 <surface>
                     <friction>
-                        <kp>10000000.0</kp> <!-- kp and kd for rubber -->
+                        <kp>1000000.0</kp> <!-- kp and kd for rubber -->
                         <kd>1.0</kd>
-                        <mu>1.0</mu>    <!-- Coulomb friction mus-->
+                        <mu1>1.0</mu1>    <!-- Coulomb friction mus-->
                         <mu2>1.0</mu2>  <!-- Friction coefficient muk-->
                         <fdir1>1 0 0</fdir1>
                         <slip1>0.0</slip1>
                         <slip2>0.0</slip2>
-                        <maxVel>1.0</maxVel>
+                        <maxVel>10.0</maxVel>
                         <minDepth>0.001</minDepth>
                     </friction>
                 </surface>
@@ -47,21 +47,8 @@
             <child link="${name}_wheel"/>
             <parent link="${parent}"/>
             <axis xyz="0 1 0" rpy="0 0 0"/>
-            <limit effort="10000" velocity="5.0"/>
-            <joint_properties damping="1.0" friction="1.0"/>
+            <limit effort="100" velocity="5.0"/>
+            <joint_properties damping="0.7"/>
         </joint>
     </xacro:macro>
-
-    <!-- ************************ Create joints for wheels ************************ -->
-    <!-- <xacro:macro name="jointz" params="name parent child origin_xyz">
-        <joint name="${name}" type="continuous">
-            <origin xyz="${origin_xyz}" rpy="0 0 0" />
-            <child link="${child}"/>
-            <parent link="${parent}"/>
-            <axis xyz="0 1 0" rpy="0 0 0"/>
-            <limit effort="10000" velocity="5.0"/>
-            <joint_properties damping="1.0" friction="1.0"/>
-        </joint>
-    </xacro:macro> -->
-
 </robot>

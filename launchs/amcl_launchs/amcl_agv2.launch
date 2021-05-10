@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="initial_pose_x"  default="12.5"/>
+  <arg name="initial_pose_x"  default="11.66"/>
   <arg name="initial_pose_y"  default="-0.2"/>
   <arg name="initial_pose_a"  default="3.14"/>
 
@@ -11,7 +11,7 @@
 
     <!-- scan topic -->
     <remap from="scan"                  to="/agv2/scan"/>
-    <remap from="initialpose"           to="/agv2//initialpose"/>
+    <remap from="initialpose"           to="/agv2/initialpose"/>
     <remap from="amcl_pose"             to="/agv2/amcl_pose"/>
     <remap from="particlecloud"         to="/agv2/particlecloud"/>
 

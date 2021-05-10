@@ -11,7 +11,7 @@
     <xacro:property name="chasis_width" value="${scale * 0.5}" />
     <xacro:property name="chasis_length" value="${scale * 0.5}" />
     <xacro:property name="chasis_height" value="${scale * 0.3}" />
-    <xacro:property name="chasis_mass" value="${scale * 25}" />
+    <xacro:property name="chasis_mass" value="${scale * 150}" />
 
     <xacro:property name="base_x_offset" value="0.0" />
 
@@ -48,7 +48,7 @@
     <!-- ************************ Wheels parameters ************************ -->
     <xacro:property name="wheel_length" value="${scale * 0.05}" />
     <xacro:property name="wheel_radius" value="${scale * 0.08}" />
-    <xacro:property name="wheel_mass" value="${scale * 1.5}" />
+    <xacro:property name="wheel_mass" value="${scale * 2.637}" />
     <xacro:property name="wheel_x_offset" value="${base_x_offset + chasis_length/2.0}" />
     <xacro:property name="wheel_y_offset" value="${chasis_width/2.0 - wheel_length/2.0}" />
 
@@ -149,14 +149,14 @@
         <collision>
             <origin xyz="${artag_x_pos} 0 ${hardware_z_offset}" rpy="-1.5707 0 1.5707" />
             <geometry>
-                <mesh filename="package://tec_proyect/meshes/aruco2.dae" /> 
+                <mesh filename="package://tec_proyect/meshes/aruco_id1.dae" />
             </geometry>
         </collision>
 
         <visual name="artag_agv_visual">
             <origin xyz="${artag_x_pos} 0 ${hardware_z_offset}" rpy="-1.5707 0 1.5707" />
             <geometry>
-                <mesh filename="package://tec_proyect/meshes/aruco2.dae" /> 
+                <mesh filename="package://tec_proyect/meshes/aruco_id1.dae" />
             </geometry>
         </visual>
     </link>

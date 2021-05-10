@@ -17,14 +17,18 @@ class MarkerDetector:
         self.marker_dict = None
         self.corners = None
         self.ids = None
-        self.tag_lose = False
 
         # -- Frame info
         self.height = 0
         self.width = 0
         self.channels = 0
+        self.center_x = 0
+        self.center_y = 0
 
         # -- Distance and angle average
+        self.x_coord = 0
+        self.y_coord = 0
+        self.z_coord = 0
         self.filter = 0
         self.distance = 0
         self.roll = 0
@@ -92,7 +96,6 @@ class MarkerDetector:
                                                                           parameters=self.parameters)
 
         if np.all(self.ids is not None) and self.ids[0] == id_detect:
-            self.tag_lose = False
             for item in range(0, len(self.ids)):
                 # rotationVect: Pose of the marker respect to camera frame
                 # translationVect: Position of the marker in camera frames
@@ -107,13 +110,13 @@ class MarkerDetector:
                                rotation_vet, translation_vet, 0.2)
 
                 # --- Find the center of the marker and draw the ID
-                center_x = (self.corners[item][0][0][0] + self.corners[item][0][1][0] + self.corners[item][0][2][0] +
+                self.center_x = (self.corners[item][0][0][0] + self.corners[item][0][1][0] + self.corners[item][0][2][0] +
                             self.corners[item][0][3][
                                 0]) / 4  # X coordinate of marker's center
-                center_y = (self.corners[item][0][0][1] + self.corners[item][0][1][1] + self.corners[item][0][2][1] +
+                self.center_y = (self.corners[item][0][0][1] + self.corners[item][0][1][1] + self.corners[item][0][2][1] +
                             self.corners[item][0][3][
                                 1]) / 4  # Y coordinate of marker's center
-                cv2.putText(frame, "id" + str(self.ids[item]), (int(center_x), int(center_y)), cv2.FONT_HERSHEY_SIMPLEX,
+                cv2.putText(frame, "id" + str(self.ids[item]), (int(self.center_x), int(self.center_y)), cv2.FONT_HERSHEY_SIMPLEX,
                             0.5, (50, 225, 250), 2)
 
                 # --- Rotation matrix tag -> camera
@@ -123,8 +126,11 @@ class MarkerDetector:
                 # --- Get the attitude in terms of euler 321 (Flip first)
                 self.roll, self.pitch, self.yaw = self._rotation_matrix_to_euler_angles(self.r_flip * r_tc)
 
-                # -- Calculated the moving average
-                self.distance = np.sqrt(translation_vet[0] ** 2 + translation_vet[1] ** 2 + translation_vet[2] ** 2)
+                # -- Calculated estimated distance
+                self.x_coord = translation_vet[0]
+                self.y_coord = translation_vet[1]
+                self.z_coord = translation_vet[2]
+                self.distance = math.sqrt(self.x_coord ** 2 + self.y_coord ** 2 + self.z_coord ** 2)
 
                 # --- Show general info of distance and angles of the marker
                 if debug:
@@ -134,8 +140,7 @@ class MarkerDetector:
                     cv2.putText(frame, str_distance, (0, 420), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
 
                     # --- X: Red Axis (Roll), Y: Green Axis (Pitch), Z: Blue Axis (Yaw)
-                    str_position = "Marker position X=%3.2f  Y=%3.2f  Z=%3.2f" % (
-                        translation_vet[0], translation_vet[1], translation_vet[2])
+                    str_position = "Marker position X=%3.2f  Y=%3.2f  Z=%3.2f" % (self.x_coord, self.y_coord, self.z_coord)
                     cv2.putText(frame, str_position, (0, 440), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
                     str_attitude = "Marker Attitude R=%3.2f  P=%3.2f  Y=%3.2f" % (
                         math.degrees(self.roll), math.degrees(self.pitch), math.degrees(self.yaw))
@@ -148,11 +153,10 @@ class MarkerDetector:
                 # cv2.putText(cv_frame, str_position, (0, 460), FONT, 0.5, (0, 25, 255), 2, cv2.LINE_AA)
                 # str_attitude = "Camera Attitude R=%3.2f  P=%3.2f  Y=%3.2f"%(math.degrees(roll_camera), math.degrees(pitch_camera), math.degrees(yaw_camera))
                 # cv2.putText(cv_frame, str_attitude, (0, 475), FONT, 0.5, (0, 25, 255), 2, cv2.LINE_AA)
-        else:
-            self.tag_lose = True
 
         if show_frame:
-            cv2.imshow("Tag", frame)
+            window_resize = cv2.resize(frame, (480, 360))
+            cv2.imshow("Marker ID " + str(id_detect), window_resize)
             cv2.waitKey(10)
 
-        return frame, self.tag_lose
+        return frame

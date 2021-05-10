@@ -12,7 +12,7 @@
     <include file="$(find tec_proyect)/launchs/amcl_launchs/amcl_agv3.launch" />
 
     <!-- Running Rviz -->
-    <!--<node pkg="rviz" type="rviz" name="rviz" args="-d $(find tec_proyect)/rviz/rviz_multi.rviz"/>-->
+<!--    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find tec_proyect)/rviz/rviz_multi.rviz"/>-->
 
     <!-- Python Scripts -->
     <node name="agv2_controller" pkg="tec_proyect" type="agv2_controller.py" output="screen"/>

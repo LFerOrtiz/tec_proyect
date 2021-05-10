@@ -1,0 +1,2 @@
+float32 scan_distance
+float32 camera_distance

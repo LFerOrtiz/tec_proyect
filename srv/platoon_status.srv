@@ -1,0 +1,5 @@
+string  id_client
+string  action
+---
+string  id_server
+string  status
