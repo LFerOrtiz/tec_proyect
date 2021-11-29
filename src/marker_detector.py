@@ -45,7 +45,7 @@ class MarkerDetector:
     def _marker_dictionary_config(self):
         """ Parameters configuration for aruco detector function """
         # --- Define the Aruco dictionary
-        self.marker_dict = aruco.Dictionary_get(aruco.DICT_5X5_50)  # Use 5x5 dictionary for find the markers
+        self.marker_dict = aruco.Dictionary_get(aruco.DICT_5X5_1000)  # Use 5x5 dictionary for find the markers
         self.parameters = aruco.DetectorParameters_create()  # Marker detection parameters
         self.parameters.adaptiveThreshWinSizeMin = 5  # Min window of Adaptive Threshold
         self.parameters.adaptiveThreshWinSizeMax = 6  # Max window of Adaptive Threshold
@@ -53,6 +53,10 @@ class MarkerDetector:
         self.parameters.cornerRefinementMinAccuracy = 0.001  # Minimum error for the stop refinement process
         self.parameters.cornerRefinementMaxIterations = 50  # Maximum number of iterations for stop criteria of the
         # corner refinement process
+        #self.parameters.minCornerDistanceRate = 0.05        # Minimum mean distance between two marker corners to be
+        # considered similar, smaller is removed
+        #self.parameters.minOtsuStdDev = 5.0                # Minimum standard deviation in pixels values during the
+        # decodification step to apply Otsu thresholding
 
     def _is_rotation_matrix(self, r):
         """ Checks if a matrix is a valid rotation matrix """
@@ -87,7 +91,8 @@ class MarkerDetector:
             Y: Green Axis (Pitch),
             Z: Blue Axis (Yaw)
         """
-        # Get the height, width and color channels of the frame
+        # -- Get the height, width and color channels of the frame
+        has_id = 0
         self.height, self.width, self.channels = frame.shape
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Convert the image to gray scale
@@ -95,68 +100,79 @@ class MarkerDetector:
         self.corners, self.ids, rejected_img_points = aruco.detectMarkers(gray, self.marker_dict,
                                                                           parameters=self.parameters)
 
-        if np.all(self.ids is not None) and self.ids[0] == id_detect:
-            for item in range(0, len(self.ids)):
-                # rotationVect: Pose of the marker respect to camera frame
-                # translationVect: Position of the marker in camera frames
-                pose_return = aruco.estimatePoseSingleMarkers(self.corners[item], self.marker_size,
-                                                              cameraMatrix=self.camera_matrix,
-                                                              distCoeffs=self.camera_distortion)
-                rotation_vet, translation_vet = pose_return[0][0, 0, :], pose_return[1][0, 0, :]
+        if np.all(self.ids is not None):
+            i = 0
+            try:
+                for sid in self.ids:
+                    if sid == id_detect and len(self.ids) > 1:
+                        i += 1
+            except TypeError:
+                i = 0
 
-                aruco.drawDetectedMarkers(frame, self.corners)  # Draw a square around the markers
-                aruco.drawAxis(frame, self.camera_matrix,  # Draw the axis in the video frame
-                               self.camera_distortion,
-                               rotation_vet, translation_vet, 0.2)
+            # if np.all(self.ids is not None) and self.ids[0] == id_detect:
+            if self.ids[i] == id_detect:
+                has_id = 1
+                for item in range(0, len(self.ids)):
+                    # rotationVect: Pose of the marker respect to camera frame
+                    # translationVect: Position of the marker in camera frames
+                    pose_return = aruco.estimatePoseSingleMarkers(self.corners[i], self.marker_size,
+                                                                  cameraMatrix=self.camera_matrix,
+                                                                  distCoeffs=self.camera_distortion)
+                    rotation_vet, translation_vet = pose_return[0][0, 0, :], pose_return[1][0, 0, :]
 
-                # --- Find the center of the marker and draw the ID
-                self.center_x = (self.corners[item][0][0][0] + self.corners[item][0][1][0] + self.corners[item][0][2][0] +
-                            self.corners[item][0][3][
-                                0]) / 4  # X coordinate of marker's center
-                self.center_y = (self.corners[item][0][0][1] + self.corners[item][0][1][1] + self.corners[item][0][2][1] +
-                            self.corners[item][0][3][
-                                1]) / 4  # Y coordinate of marker's center
-                cv2.putText(frame, "id" + str(self.ids[item]), (int(self.center_x), int(self.center_y)), cv2.FONT_HERSHEY_SIMPLEX,
-                            0.5, (50, 225, 250), 2)
+                    aruco.drawDetectedMarkers(frame, self.corners)  # Draw a square around the markers
+                    aruco.drawAxis(frame, self.camera_matrix,  # Draw the axis in the video frame
+                                   self.camera_distortion,
+                                   rotation_vet, translation_vet, 0.2)
 
-                # --- Rotation matrix tag -> camera
-                r_ct = np.matrix(cv2.Rodrigues(rotation_vet)[0])
-                r_tc = r_ct.T  # Transpose of the matrix
+                    # --- Find the center of the marker and draw the ID
+                    self.center_x = (self.corners[i][0][0][0] + self.corners[i][0][1][0] + self.corners[i][0][2][
+                        0] +
+                                     self.corners[i][0][3][
+                                         0]) / 4  # X coordinate of marker's center
+                    self.center_y = (self.corners[i][0][0][1] + self.corners[i][0][1][1] + self.corners[i][0][2][
+                        1] +
+                                     self.corners[i][0][3][
+                                         1]) / 4  # Y coordinate of marker's center
+                    cv2.putText(frame, "id" + str(self.ids[i]), (int(self.center_x), int(self.center_y)),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                0.5, (50, 225, 250),
+                                2)
 
-                # --- Get the attitude in terms of euler 321 (Flip first)
-                self.roll, self.pitch, self.yaw = self._rotation_matrix_to_euler_angles(self.r_flip * r_tc)
+                    # --- Rotation matrix tag -> camera
+                    r_ct = np.matrix(cv2.Rodrigues(rotation_vet)[0])
+                    r_tc = r_ct.T  # Transpose of the matrix
 
-                # -- Calculated estimated distance
-                self.x_coord = translation_vet[0]
-                self.y_coord = translation_vet[1]
-                self.z_coord = translation_vet[2]
-                self.distance = math.sqrt(self.x_coord ** 2 + self.y_coord ** 2 + self.z_coord ** 2)
+                    # --- Get the attitude in terms of euler 321 (Flip first)
+                    self.roll, self.pitch, self.yaw = self._rotation_matrix_to_euler_angles(self.r_flip * r_tc)
 
-                # --- Show general info of distance and angles of the marker
-                if debug:
-                    str_angle = "Angle: %3.4f" % math.degrees(self.pitch)
-                    cv2.putText(frame, str_angle, (0, 400), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
-                    str_distance = "Distance: %3.4f" % self.distance
-                    cv2.putText(frame, str_distance, (0, 420), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
+                    # -- Calculated estimated distance
+                    self.x_coord = translation_vet[0]
+                    self.y_coord = translation_vet[1]
+                    self.z_coord = translation_vet[2]
+                    self.distance = math.sqrt(self.x_coord ** 2 + self.y_coord ** 2 + self.z_coord ** 2)
 
-                    # --- X: Red Axis (Roll), Y: Green Axis (Pitch), Z: Blue Axis (Yaw)
-                    str_position = "Marker position X=%3.2f  Y=%3.2f  Z=%3.2f" % (self.x_coord, self.y_coord, self.z_coord)
-                    cv2.putText(frame, str_position, (0, 440), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
-                    str_attitude = "Marker Attitude R=%3.2f  P=%3.2f  Y=%3.2f" % (
-                        math.degrees(self.roll), math.degrees(self.pitch), math.degrees(self.yaw))
-                    cv2.putText(frame, str_attitude, (0, 460), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
+                    # --- Show general info of distance and angles of the marker
+                    if debug:
+                        str_angle = "Angle: %3.4f" % math.degrees(self.pitch)
+                        cv2.putText(frame, str_angle, (0, 400), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
+                        str_distance = "Distance: %3.4f" % self.distance
+                        cv2.putText(frame, str_distance, (0, 420), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
 
-                # --- Position and attitude of the camera respect to the marker
-                # camera_pose = -R_ct * np.matrix(translation_vet).T
-                # roll_camera, pitch_camera, yaw_camera = rotation_matrix_to_euler_angles(R_flip * R_ct)
-                # str_position = "Camera position X=%3.2f  Y=%3.2f  Z=%3.2f"%(camera_pose[0], camera_pose[1], camera_pose[2])
-                # cv2.putText(cv_frame, str_position, (0, 460), FONT, 0.5, (0, 25, 255), 2, cv2.LINE_AA)
-                # str_attitude = "Camera Attitude R=%3.2f  P=%3.2f  Y=%3.2f"%(math.degrees(roll_camera), math.degrees(pitch_camera), math.degrees(yaw_camera))
-                # cv2.putText(cv_frame, str_attitude, (0, 475), FONT, 0.5, (0, 25, 255), 2, cv2.LINE_AA)
+                        # --- X: Red Axis (Roll), Y: Green Axis (Pitch), Z: Blue Axis (Yaw)
+                        str_position = "Marker position X=%3.2f  Y=%3.2f  Z=%3.2f" % (
+                            self.x_coord, self.y_coord, self.z_coord)
+                        cv2.putText(frame, str_position, (0, 440), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
+                        str_attitude = "Marker Attitude R=%3.2f  P=%3.2f  Y=%3.2f" % (
+                            math.degrees(self.roll), math.degrees(self.pitch), math.degrees(self.yaw))
+                        cv2.putText(frame, str_attitude, (0, 460), FONT, FONT_SIZE, (255, 0, 0), 2, cv2.LINE_AA)
+
+            elif np.all(self.ids is None):
+                has_id = 0
 
         if show_frame:
             window_resize = cv2.resize(frame, (480, 360))
             cv2.imshow("Marker ID " + str(id_detect), window_resize)
             cv2.waitKey(10)
 
-        return frame
+        return frame, has_id

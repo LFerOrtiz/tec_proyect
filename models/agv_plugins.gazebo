@@ -10,11 +10,11 @@
     </gazebo>
 
     <gazebo reference = "back_left_wheel">
-        <material>Gazebo/FlatBlack</material>
+        <material>Gazebo/Grey</material>
     </gazebo>
 
     <gazebo reference = "front_left_wheel">
-        <material>Gazebo/FlatBlack</material>
+        <material>Gazebo/Grey</material>
     </gazebo>
 
     <gazebo reference = "front_right_wheel">
@@ -28,11 +28,12 @@
 	<!-- ************************ Plugin for drive type in Gazebo ************************ -->
     <gazebo>
         <plugin name="skid_steer_drive_controller" filename="libgazebo_ros_skid_steer_drive.so"> 
-            <updateRate>60.0</updateRate>
+            <updateRate>100.0</updateRate>
             <robotBaseFrame>base_link</robotBaseFrame>
-            <wheelSeparation>0.5</wheelSeparation>
+            <wheelSeparation>0.46</wheelSeparation>
             <wheelDiameter>0.16</wheelDiameter>
             <torque>200</torque>
+            <MaxForce>5.0</MaxForce>
 
             <leftFrontJoint>front_left_wheel_joint</leftFrontJoint>
             <rightFrontJoint>front_right_wheel_joint</rightFrontJoint>
@@ -42,9 +43,9 @@
 
             <!--topicName>cmd_vel</topicName-->
             <commandTopic>cmd_vel</commandTopic>
+            <broadcastTF>1</broadcastTF>
             <odometryTopic>odom</odometryTopic>
             <odometryFrame>odom</odometryFrame>
-            <broadcastTF>true</broadcastTF>
             <covariance_x>0.00100</covariance_x>
             <covariance_y>0.00100</covariance_y>
             <covariance_yaw>0.010000</covariance_yaw>
@@ -58,7 +59,6 @@
 	    	<pose>0 0 0 0 0 0</pose>
 	      	<visualize>false</visualize>
 	     	<update_rate>40</update_rate>
-
 		    <ray>
 		        <scan>
 		        	<horizontal>

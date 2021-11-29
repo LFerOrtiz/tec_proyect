@@ -1,0 +1,161 @@
+<!-- Main launch file to run the simulation on the different maps, only select one,
+     uncomment that lines for selected map, yaml and initial position,
+     and comment the lines of the others map, yaml and initial position -->
+<launch>
+    <!-- Use the timestamp of /clock topic -->
+    <param name="/use_sim_time" value="true"/>
+
+    <!-- ************** World ************** -->
+    <!-- ************************** "Prueba" ************************** -->
+<!--    <arg name="initial_pose_x_1" default="0.0"/>-->
+<!--    <arg name="initial_pose_y_1" default="0.0"/>-->
+<!--    <arg name="initial_pose_a_1" default="0.0"/>-->
+
+<!--    <arg name="initial_pose_x_2" default="-1.8"/>-->
+<!--    <arg name="initial_pose_y_2" default="0.0"/>-->
+<!--    <arg name="initial_pose_a_2" default="0.0"/>-->
+
+<!--    <arg name="initial_pose_x_3" default="-3.6"/>-->
+<!--    <arg name="initial_pose_y_3" default="0.0"/>-->
+<!--    <arg name="initial_pose_a_3" default="0.0"/>-->
+
+<!--    <arg name="initial_pose_x_4" default="-5.4"/>-->
+<!--    <arg name="initial_pose_y_4" default="0.0"/>-->
+<!--    <arg name="initial_pose_a_4" default="0.0"/>-->
+
+<!--    <arg name="world_file" default="$(find tec_proyect)/worlds/empty_world2.world"/>-->
+<!--    <arg name="map_file" default="$(find tec_proyect)/maps/map.yaml"/>-->
+
+    <!-- ************************** "Almacen" ************************** -->
+<!--    <arg name="initial_pose_x_1" default="10.0"/>-->
+<!--    <arg name="initial_pose_y_1" default="-0.4"/>-->
+<!--    <arg name="initial_pose_a_1" default="3.14"/>-->
+
+<!--    <arg name="initial_pose_x_2" default="11.8"/>-->
+<!--    <arg name="initial_pose_y_2" default="-0.4"/>-->
+<!--    <arg name="initial_pose_a_2" default="3.14"/>-->
+
+<!--    <arg name="initial_pose_x_4" default="13.6"/>-->
+<!--    <arg name="initial_pose_y_4" default="-0.4"/>-->
+<!--    <arg name="initial_pose_a_4" default="3.14"/>-->
+
+<!--    <arg name="initial_pose_x_3" default="-8.648"/>-->
+<!--    <arg name="initial_pose_y_3" default="-6.35"/>-->
+<!--    <arg name="initial_pose_a_3" default="0.122"/>-->
+
+<!--    <arg name="world_file" default="$(find tec_proyect)/worlds/NewAlmacen.world"/>-->
+<!--    <arg name="map_file" default="$(find tec_proyect)/maps/NewAlmacen.yaml"/>-->
+
+    <!-- ************************** "Hospital" ************************** -->
+    <arg name="initial_pose_x_1" default="-11.0"/>
+    <arg name="initial_pose_y_1" default="-0.65"/>
+    <arg name="initial_pose_a_1" default="-1.57"/>
+
+    <arg name="initial_pose_x_2" default="-11.0"/>
+    <arg name="initial_pose_y_2" default="1.15"/>
+    <arg name="initial_pose_a_2" default="-1.57"/>
+
+    <arg name="initial_pose_x_3" default="-11.0"/>
+    <arg name="initial_pose_y_3" default="2.95"/>
+    <arg name="initial_pose_a_3" default="-1.57"/>
+
+    <arg name="initial_pose_x_4" default="-8.62"/>
+    <arg name="initial_pose_y_4" default="4.48"/>
+    <arg name="initial_pose_a_4" default="-1.50"/>
+
+    <arg name="world_file" default="$(find tec_proyect)/worlds/NewHospital.world"/>
+    <arg name="map_file" default="$(find tec_proyect)/maps/NewHospital.yaml"/>
+
+    <!-- ************************** "Laboratorio" ************************** -->
+<!--    <arg name="initial_pose_x_1" default="-3.5"/>-->
+<!--    <arg name="initial_pose_y_1" default="6.5"/>-->
+<!--    <arg name="initial_pose_a_1" default="-1.57"/>-->
+
+<!--    <arg name="initial_pose_x_2" default="-3.5"/>-->
+<!--    <arg name="initial_pose_y_2" default="8.3"/>-->
+<!--    <arg name="initial_pose_a_2" default="-1.57"/>-->
+
+<!--    <arg name="initial_pose_x_3" default="-3.5"/>-->
+<!--    <arg name="initial_pose_y_3" default="10.1"/>-->
+<!--    <arg name="initial_pose_a_3" default="-1.57"/>-->
+
+<!--    <arg name="initial_pose_x_4" default="-0.4"/>-->
+<!--    <arg name="initial_pose_y_4" default="-11.95"/>-->
+<!--    <arg name="initial_pose_a_4" default="1.57"/>-->
+
+<!--    <arg name="world_file" default="$(find tec_proyect)/worlds/NewLaboratorio.world"/>-->
+<!--    <arg name="map_file" default="$(find tec_proyect)/maps/NewLaboratorio.yaml"/>-->
+
+    <!-- ************** Gazebo parameters ************** -->
+    <arg name="paused"          default="false"/>
+    <arg name="use_sim_time"    default="true"/>
+    <arg name="gui"             default="true"/>
+    <arg name="headless"        default="false"/>
+    <arg name="debug"           default="false"/>
+
+    <!-- Start the world -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">   <!-- base file -->
+        <arg name="world_name"      value="$(arg world_file)"/>       <!-- world file -->
+        <arg name="paused"          value="$(arg paused)"/>
+        <arg name="use_sim_time"    value="$(arg use_sim_time)"/>
+        <arg name="gui"             value="$(arg gui)"/>
+        <arg name="headless"        value="$(arg headless)"/>
+        <arg name="debug"           value="$(arg debug)"/>
+    </include>
+
+    <!-- ************** Map Server ************** -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
+        <param name="frame_id"  value="map"/>
+    </node>
+
+    <!-- ************** Include the robots ************** -->
+    <include file="$(find tec_proyect)/launchs/multi_launchs/agv_vehicles.launch">
+        <arg name="initial_pose_x_1" default="$(arg initial_pose_x_1)"/>
+        <arg name="initial_pose_y_1" default="$(arg initial_pose_y_1)"/>
+        <arg name="initial_pose_a_1" default="$(arg initial_pose_a_1)"/>
+
+        <arg name="initial_pose_x_2" default="$(arg initial_pose_x_2)"/>
+        <arg name="initial_pose_y_2" default="$(arg initial_pose_y_2)"/>
+        <arg name="initial_pose_a_2" default="$(arg initial_pose_a_2)"/>
+
+        <arg name="initial_pose_x_3" default="$(arg initial_pose_x_3)"/>
+        <arg name="initial_pose_y_3" default="$(arg initial_pose_y_3)"/>
+        <arg name="initial_pose_a_3" default="$(arg initial_pose_a_3)"/>
+
+        <arg name="initial_pose_x_4" default="$(arg initial_pose_x_4)"/>
+        <arg name="initial_pose_y_4" default="$(arg initial_pose_y_4)"/>
+        <arg name="initial_pose_a_4" default="$(arg initial_pose_a_4)"/>
+    </include>
+
+    <!-- ************** Rviz ************** -->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find tec_proyect)/rviz/rviz_multi.rviz" output="screen"/>
+
+    <!-- ************** AMCL launch for each agv ************** -->
+    <!-- Uncomment the lines for the selected map and yaml, and comment the others lines-->
+    <include file="$(find tec_proyect)/launchs/amcl_launchs/amcl_agv_leader.launch">
+        <arg name="initial_pose_x_1" default="$(arg initial_pose_x_1)"/>
+        <arg name="initial_pose_y_1" default="$(arg initial_pose_y_1)"/>
+        <arg name="initial_pose_a_1" default="$(arg initial_pose_a_1)"/>
+    </include>
+
+    <include file="$(find tec_proyect)/launchs/amcl_launchs/amcl_agv_follower_1.launch">
+        <arg name="initial_pose_x_2" default="$(arg initial_pose_x_2)"/>
+        <arg name="initial_pose_y_2" default="$(arg initial_pose_y_2)"/>
+        <arg name="initial_pose_a_2" default="$(arg initial_pose_a_2)"/>
+    </include>
+
+    <include file="$(find tec_proyect)/launchs/amcl_launchs/amcl_agv_follower_2.launch">
+        <arg name="initial_pose_x_3" default="$(arg initial_pose_x_3)"/>
+        <arg name="initial_pose_y_3" default="$(arg initial_pose_y_3)"/>
+        <arg name="initial_pose_a_3" default="$(arg initial_pose_a_3)"/>
+    </include>
+
+    <include file="$(find tec_proyect)/launchs/amcl_launchs/amcl_agv_follower_3.launch">
+        <arg name="initial_pose_x_4" default="$(arg initial_pose_x_4)"/>
+        <arg name="initial_pose_y_4" default="$(arg initial_pose_y_4)"/>
+        <arg name="initial_pose_a_4" default="$(arg initial_pose_a_4)"/>
+    </include>
+
+    <!-- ************** Move Base launch ************** -->
+    <include file="$(find tec_proyect)/launchs/move_base/move_base_agv_leader.launch"/>
+</launch>

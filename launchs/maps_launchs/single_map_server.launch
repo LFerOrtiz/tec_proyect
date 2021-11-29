@@ -1,6 +1,6 @@
 <launch>
   <!-- Almacen -->  
-  <arg name="map_file"   default="$(find tec_proyect)/maps/almacen_map.yaml" /> 
+  <arg name="map_file"   default="$(find tec_proyect)/maps/NewAlmacen.yaml" />
 
   <!-- Hospital -->
   <!-- <arg name="map_file"   default="$(find tec_proyect)/maps/hospital_map.yaml" />  -->
@@ -8,6 +8,8 @@
   <!-- Laboratorio -->
   <!-- <arg name="map_file"   default="$(find tec_proyect)/maps/laboratorio_map.yaml" />  -->
 
-  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)" respawn="true" /> 
+  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)" respawn="true" />
+
+  <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find tec_proyect)/rviz/rviz_mapping.rviz"/>
 
 </launch>

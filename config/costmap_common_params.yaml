@@ -1,18 +1,30 @@
-map_type: costmap
-obstacle_range: 5.0     # If detect a obstacle closer than the distance specificate, put in the costmap
-raytrace_range: 6.5     # Clean and update the free space in the costmap when the robot move
+obstacle_range: 5.0
+raytrace_range: 6.0
+footprint: [ [0.28, 0.28], [0.28, -0.28], [-0.28, -0.28], [-0.28, 0.28] ]
+footprint_padding: 0.01
 
-# Point of the geometry of the base_link of the robot
-footprint: [ [0.25, 0.25], [0.25, -0.25], [-0.25, -0.25], [-0.25, 0.25] ]
-
-# Maximum latency accepted so the system knows that no link in the transform tree is missing
+#global_frame: map
+robot_base_frame: agv1/base_link
+subscribe_to_updates: true
+always_send_full_costmap: true
 transform_tolerance: 1.0
-robot_radius: 0.27
-# Minimal distance between the geometry of the robot and the obstacles
-inflation_radius: 0.35
 
-cost_scaling_factor: 5.0 # How far from walls (more is further)
-# Sensor used by the navigation stack to get the data and calculate the path
-observation_sources: laser_scan_sensor
-# Config the sensor's frame
-laser_scan_sensor: {sensor_frame: hokuyo, data_type: LaserScan, topic: /agv1/scan, marking: true, clearing: true}
+resolution: 0.1
+
+inflation_layer:
+    enabled: true
+    inflation_radius: 0.8
+
+static_layer:
+    enable: true
+    map_topic: map
+    subscribe_to_updates: true
+
+obstacle_layer:
+    enable: true
+    observation_sources: laser_scan_sensor
+    laser_scan_sensor: {sensor_frame: agv1/hokuyo, data_type: LaserScan, topic: agv1/scan, marking: true, clearing: true, min_obstacle_height: 0.0, max_obstacle_height: 5.0, inf_is_valid: true}
+
+#plugins:
+#    - {name: inflation_layer,        type: "costmap_2d::InflationLayer"}
+#    - {name: obstacle_layer,         type: "costmap_2d::ObstacleLayer"}

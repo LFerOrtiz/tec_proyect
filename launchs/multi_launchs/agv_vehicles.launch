@@ -1,50 +1,30 @@
 <launch>
-  <!-- No namespace here as we will share this description.
-       Access with slash at the beginning -->
   <!-- <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model.urdf.xacro" /> -->
-  <!-- Initial pose for "Almacen" -->
-  <arg name="initial_pose_x_1"  default="10.0"/>
-  <arg name="initial_pose_y_1"  default="-0.2"/>
-  <arg name="initial_pose_a_1"  default="3.14"/>
+    <!-- ************************** Initial pose for "Prueba" ************************** -->
+  <arg name="initial_pose_x_1"  default="0.0"/>
+  <arg name="initial_pose_y_1"  default="0.0"/>
+  <arg name="initial_pose_a_1"  default="0.0"/>
 
-  <arg name="initial_pose_x_2"  default="11.66"/>
-  <arg name="initial_pose_y_2"  default="-0.2"/>
-  <arg name="initial_pose_a_2"  default="3.14"/>
+  <arg name="initial_pose_x_2"  default="0.0"/>
+  <arg name="initial_pose_y_2"  default="0.0"/>
+  <arg name="initial_pose_a_2"  default="0.0"/>
 
-  <arg name="initial_pose_x_3"  default="13.3"/>
-  <arg name="initial_pose_y_3"  default="-0.2"/>
-  <arg name="initial_pose_a_3"  default="3.14"/>
+  <arg name="initial_pose_x_3"  default="0.0"/>
+  <arg name="initial_pose_y_3"  default="0.0"/>
+  <arg name="initial_pose_a_3"  default="0.0"/>
 
-  <!-- Initial pose for "Hospital" -->
-<!--  <arg name="initial_pose_x_1"  default="0.0"/>-->
-<!--  <arg name="initial_pose_y_1"  default="0.0"/>-->
-<!--  <arg name="initial_pose_a_1"  default="-1.57"/>-->
+  <arg name="initial_pose_x_4"  default="0.0"/>
+  <arg name="initial_pose_y_4"  default="0.0"/>
+  <arg name="initial_pose_a_4"  default="0.0"/>
 
-<!--  <arg name="initial_pose_x_2"  default="0.0"/>-->
-<!--  <arg name="initial_pose_y_2"  default="1.5"/>-->
-<!--  <arg name="initial_pose_a_2"  default="-1.57"/>-->
 
-<!--  <arg name="initial_pose_x_3"  default="0.0"/>-->
-<!--  <arg name="initial_pose_y_3"  default="3.0"/>-->
-<!--  <arg name="initial_pose_a_3"  default="-1.57"/>-->
-
-  <!-- Initial pose for "Laboratorio" -->
-<!--  <arg name="initial_pose_x_1"  default="2.0"/>-->
-<!--  <arg name="initial_pose_y_1"  default="-4.5"/>-->
-<!--  <arg name="initial_pose_a_1"  default="1.57"/>-->
-
-<!--  <arg name="initial_pose_x_2"  default="2.0"/>-->
-<!--  <arg name="initial_pose_y_2"  default="-5.5"/>-->
-<!--  <arg name="initial_pose_a_2"  default="1.57"/>-->
-
-<!--  <arg name="initial_pose_x_3"  default="2.0"/>-->
-<!--  <arg name="initial_pose_y_3"  default="-6.5"/>-->
-<!--  <arg name="initial_pose_a_3"  default="1.57"/>-->
-
-  <!-- BEGIN ROBOT 1-->
+  <!-- ************************** BEGIN ROBOT 1 ************************** -->
   <group ns="agv1">
     <param name="tf_prefix" value="agv1" />
-    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model.urdf.xacro" />
+    <!-- Single Tag -->
+<!--    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model.urdf.xacro" />-->
+    <!-- Multi Tag -->
+    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/Trapezoide/agv_leader_model.urdf.xacro" />
 
     <!-- send fake joint values -->
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
@@ -52,17 +32,22 @@
     </node>
 
     <!-- Combine joint values -->
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" >
+      <param name="publish_frequency" type="double" value="50.0" />
+    </node>
 
     <!-- Spawn the model in gazebo world -->
     <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
       args="-x $(arg initial_pose_x_1) -y $(arg initial_pose_y_1) -z 0.0 -R 0.0 -P 0.0 -Y $(arg initial_pose_a_1) -urdf -param robot_description -model AGV1" respawn="false" output="screen" />
   </group>
 
-  <!-- BEGIN ROBOT 2-->
+  <!-- ************************** BEGIN ROBOT 2 ************************** -->
   <group ns="agv2">
     <param name="tf_prefix" value="agv2" />
-    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model_two.urdf.xacro" />
+    <!-- Single Tag -->
+<!--    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model_two.urdf.xacro" />-->
+    <!-- Multi Tag -->
+    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/Trapezoide/agv_follower1_model.urdf.xacro" />
 
     <!-- send fake joint values -->
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
@@ -70,18 +55,22 @@
     </node>
 
     <!-- Combine joint values -->
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" >
+      <param name="publish_frequency" type="double" value="50.0" />
+    </node>
 
     <!-- Spawn the model in gazebo world -->
     <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
       args="-x $(arg initial_pose_x_2) -y $(arg initial_pose_y_2) -z 0.0 -R 0.0 -P 0.0 -Y $(arg initial_pose_a_2) -urdf -param robot_description -model AGV2" respawn="false" output="screen" />
-
   </group> 
 
-  <!-- BEGIN ROBOT 3-->
+  <!-- ************************** BEGIN ROBOT 3 ************************** -->
   <group ns="agv3">
     <param name="tf_prefix" value="agv3" />
-    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model_three.urdf.xacro" />
+    <!-- Single Tag -->
+<!--    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model_three.urdf.xacro" />-->
+    <!-- Multi Tag -->
+    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/Trapezoide/agv_follower2_model.urdf.xacro" />
 
     <!-- send fake joint values -->
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
@@ -89,12 +78,35 @@
     </node>
 
     <!-- Combine joint values -->
-    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen"/>
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" >
+      <param name="publish_frequency" type="double" value="50.0" />
+    </node>
 
     <!-- Spawn the model in gazebo world -->
     <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
       args="-x $(arg initial_pose_x_3) -y $(arg initial_pose_y_3) -z 0.0 -R 0.0 -P 0.0 -Y $(arg initial_pose_a_3) -urdf -param robot_description -model AGV3" respawn="false" output="screen" />
-    
   </group>
 
+    <!-- ************************** BEGIN ROBOT 4 ************************** -->
+  <group ns="agv4">
+    <param name="tf_prefix" value="agv4" />
+    <!-- Single Tag -->
+<!--    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/agv_model_three.urdf.xacro" />-->
+    <!-- Multi Tag -->
+    <param name="robot_description" command="$(find xacro)/xacro $(find tec_proyect)/models/Trapezoide/agv_follower3_model.urdf.xacro" />
+
+    <!-- send fake joint values -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+      <param name="use_gui" value="FALSE"/>
+    </node>
+
+    <!-- Combine joint values -->
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen" >
+      <param name="publish_frequency" type="double" value="50.0" />
+    </node>
+
+    <!-- Spawn the model in gazebo world -->
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model"
+      args="-x $(arg initial_pose_x_4) -y $(arg initial_pose_y_4) -z 0.0 -R 0.0 -P 0.0 -Y $(arg initial_pose_a_4) -urdf -param robot_description -model AGV4" respawn="false" output="screen" />
+  </group>
 </launch>

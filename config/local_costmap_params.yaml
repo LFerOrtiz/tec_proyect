@@ -1,12 +1,21 @@
 local_costmap:
-   global_frame: agv1/odom
-   robot_base_frame: agv1/base_link
-   update_frequency: 10.0
-   publish_frequency: 10.0
-   width: 20.0
-   height: 20.0
-   resolution: 0.05
-   static_map: false
-   rolling_window: true                         # Keep the costmap centered on the robot when it is moving around the world
-   planner_frequency: 1.0                       # Rate in Hz at which to run the planning loop
-   planner_patiente: 5.0                        # Wait in seconds in an attempt to find a valid plan
+  global_frame: agv1/odom
+  robot_base_frame: agv1/base_link
+  update_frequency: 10.0    # Defines how often cost should be recalculated
+  publish_frequency: 10.0   # Defines how often cost map should be published to topic
+  transform_tolerance: 0.25 # Define latency in published transforms (in seconds), if transforms are older than this, planner will stop
+
+  static_map: false         # Defines if map can change in time, true if map will not change
+  rolling_window: true      # Defines if map should follow position of robot
+  origin_x: -1.5
+  origin_y: -1.58
+  resolution: 0.1           # Define size of single map cell (in meters)
+
+  width: 10.0
+  height: 10.0
+
+  inflation_radius: 0.6     # Defines distance to obstacle where cost should be considered, any further from obstacle than this value will be treated as no cost.
+
+plugins:
+  - {name: obstacle_layer,           type: "costmap_2d::ObstacleLayer"}
+  - {name: inflation_layer,          type: "costmap_2d::InflationLayer"}

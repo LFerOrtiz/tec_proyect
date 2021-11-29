@@ -1,5 +1,13 @@
+<!-- Launch file for the edition of the worlds, quit comment to the file name of the world. Only one name-->
 <launch>
-  <arg name="world_name" default="$(find tec_proyect)/worlds/laboratorio.world"/>
+    <!-- Almacen -->
+<!--    <arg name="world_name" default="$(find tec_proyect)/worlds/NewAlmacen.world"/>-->
+
+    <!-- Hospital -->
+  <arg name="world_name" default="$(find tec_proyect)/worlds/NewHospital.world"/>
+
+    <!-- Laboratorio -->
+<!--     <arg name="world_name"    default="$(find tec_proyect)/worlds/NewLaboratorio.world"/>-->
 
   <arg name="paused"        default="false"/>
   <arg name="use_sim_time"  default="true"/>

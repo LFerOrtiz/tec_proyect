@@ -56,13 +56,16 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
    FILES
    sensor_distance.msg
+   agv_status.msg
+   vehicle_ids.msg
+   goal_station.msg
+   V2VCommunication.msg
 )
 
 ## Generate services in the 'srv' folder
-add_service_files(
-   FILES
-   platoon_status.srv
-)
+#add_service_files(
+#   FILES
+#)
 
 ## Generate actions in the 'action' folder
 # add_action_files(

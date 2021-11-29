@@ -22,7 +22,9 @@
   <!-- ************** Include the robots ************** -->
   <include file="$(find tec_proyect)/launchs/multi_launchs/agv_vehicles.launch"/>
 
+  <!-- ************** Run the rosbag ************** -->
+<!--  <node pkg="rosbag" type="play" name="player" output="screen" args="&#45;&#45;clock /home/fer/agv1_cmd_08.bag"/>-->
+
   <!-- ************** Pyhton scripts ************** -->
-<!--  <node name="agv2_controller" pkg="tec_proyect" type="agv2_controller.py" output="screen"/>-->
-<!--  <node name="agv3_controller" pkg="tec_proyect" type="agv3_controller.py" output="screen"/>-->
+<!--  <include file="$(find tec_proyect)/launchs/multi_launchs/scripts.launch"/>-->
 </launch>

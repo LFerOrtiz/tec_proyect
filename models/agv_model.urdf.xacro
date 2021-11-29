@@ -8,8 +8,8 @@
     <xacro:property name="scale" value="1.0" />
 
     <!-- Length along X-axis, Width along Y-axis, Height along Z-axis -->
-    <xacro:property name="chasis_width" value="${scale * 0.5}" />
-    <xacro:property name="chasis_length" value="${scale * 0.5}" />
+    <xacro:property name="chasis_width" value="${scale * 0.46}" />
+    <xacro:property name="chasis_length" value="${scale * 0.46}" />
     <xacro:property name="chasis_height" value="${scale * 0.3}" />
     <xacro:property name="chasis_mass" value="${scale * 150}" />
 

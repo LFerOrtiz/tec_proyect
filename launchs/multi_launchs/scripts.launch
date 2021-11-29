@@ -1,0 +1,16 @@
+<launch>
+  <!-- Use the timestamp of /clock topic -->
+  <param name="/use_sim_time" value="true" />
+  <arg name="record_odom" default="true" />
+
+  <!-- ************** Run the rosbag ************** -->
+<!--  <node pkg="rosbag" type="record" name="rosbag_record_odom"-->
+<!--        args="record -o /home/fer/Pruebas/prueba agv1/amcl_pose agv2/amcl_pose agv3/amcl_pose" if="$(arg record_odom)" />-->
+
+  <!-- ************** Pyhton scripts ************** -->
+  <node name="agv_leader_controller"    pkg="tec_proyect" type="agv_leader_controller.py" output="screen"/>
+<!--  <node name="agv_leader_path"          pkg="tec_proyect" type="odom_to_path.py" />-->
+  <node name="agv2_controller" pkg="tec_proyect" type="agv2_c.py" output="screen"/>
+  <node name="agv3_controller" pkg="tec_proyect" type="agv3_controller.py" output="screen"/>
+  <node name="agv4_controller" pkg="tec_proyect" type="agv4_controller.py" output="screen"/>
+</launch>

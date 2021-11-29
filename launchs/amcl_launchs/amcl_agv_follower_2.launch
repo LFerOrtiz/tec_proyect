@@ -1,0 +1,91 @@
+<launch>
+  <!-- ************************** Initial Pose of Robot ************************** -->
+  <arg name="initial_pose_x_3"  default="0.0"/>
+  <arg name="initial_pose_y_3"  default="0.0"/>
+  <arg name="initial_pose_a_3"  default="0.0"/>
+
+  <arg name="use_map_topic"   default="false"/>
+  <arg name="scan_topic"      default="agv3/scan" />
+  <arg name="odom_frame_id"   default="agv3/odom"/>
+  <arg name="base_frame_id"   default="agv3/base_link"/>
+  <arg name="global_frame_id" default="map"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster_3" args="0 0 0 0 0 0 map agv3/map 60"/>
+
+  <!-- AMCL Node config -->
+  <node pkg="amcl" type="amcl" name="agv3_amcl" output="screen">
+    <!-- indicate that this transform is valid into the future. -->
+    <param name="transform_tolerance"   value="1.0" /> <!-- 0.1 -->
+    <!-- Number of particles for amcl -->
+    <param name="min_particles"         value="1000"/>
+    <param name="max_particles"         value="5000"/>
+
+    <!-- Translational (d), rotational (a) movement required before performing a filter update. -->
+    <param name="update_min_d"          value="0.1"/> <!-- 0.2 -->
+    <param name="update_min_a"          value="0.13"/> <!-- π/6.0 radians 0.5236 -->
+
+    <!-- Number of filter updates required before resampling. -->
+    <param name="resample_interval"     value="2" />
+
+    <!-- Initial pose mean (x, y, a), used to initialize filter with Gaussian distribution. -->
+    <param name="initial_pose_x"        value="$(arg initial_pose_x_3)"/>
+    <param name="initial_pose_y"        value="$(arg initial_pose_y_3)"/>
+    <param name="initial_pose_a"        value="$(arg initial_pose_a_3)"/>
+
+    <!-- Initial covariance (xx, yy, aa), used to initialize filter with Gaussian distribution. -->
+    <param name="initial_cov_xx"        value="1.0"/> <!-- 0.0 -->
+    <param name="initial_cov_yy"        value="1.0"/> <!-- 0.0 -->
+    <param name="initial_cov_aa"        value="1.0"/> <!-- 0.0 -->
+
+    <param name="kld_err"               value="0.1" />
+    <param name="kld_z"                 value="0.5"/>
+
+    <param name="gui_publish_rate"      value="15.0"/>   <!-- 10.0 -->
+
+    <!-- *********************** Laser parameters *********************** -->
+    <param name="laser_model_type"      value="likelihood_field"/>
+    <param name="laser_likelihood_max_dist" value="4.0"/>
+    <param name="laser_min_range"       value="-1"/>
+    <param name="laser_max_range"       value="-1"/>
+
+    <!-- How many evenly-spaced beams in each scan to be used when updating the filter. -->
+    <param name="laser_max_beams"       value="100"/>
+    <param name="laser_z_hit"           value="0.9"/>
+    <param name="laser_z_short"         value="0.05"/>
+    <param name="laser_z_max"           value="0.05"/>
+    <param name="laser_z_rand"          value="0.5"/>
+    <param name="laser_sigma_hit"       value="0.2"/>
+    <param name="laser_lambda_short"    value="0.1"/>
+
+    <!-- *********************** Odometry parameters *********************** -->
+    <param name="tf_broadcast"          value="true" />
+    <param name="odom_model_type"       value="diff"/>
+    <!-- Frame to use for odometry. -->
+    <param name="odom_frame_id"         value="$(arg odom_frame_id)"/>
+    <!-- Frame to use for the robot base -->
+    <param name="base_frame_id"         value="$(arg base_frame_id)"/>
+    <!-- The name of the coordinate frame published by the localization system -->
+    <param name="global_frame_id"       value="$(arg global_frame_id)"/>
+    <param name="use_map_topic"         value="$(arg use_map_topic)"/>
+
+    <!-- Specifies the expected noise in odometry's rotation estimate from the
+    rotational component of the robot's motion. -->
+    <!-- 1 expected noise in odometry's rotation estimate from the rotational component -->
+    <param name="odom_alpha1"           value="0.008"/> <!-- 0.2 -->
+    <!-- 2 expected noise in odometry's rotation estimate from the translational component -->
+    <param name="odom_alpha2"           value="0.04"/> <!-- 0.2 -->
+    <!-- 3 expected noise in odometry's translation estimate from the translational component -->
+    <param name="odom_alpha3"           value="0.004"/> <!-- 0.2 -->
+    <!-- 4 expected noise in odometry's translation estimate from the rotational component -->
+    <param name="odom_alpha4"           value="0.025"/> <!-- 0.2 -->
+    <!-- Translation-related noise parameter (only used if model is "omni"). -->
+    <param name="odom_alpha5"           value="0.2"/> <!-- 0.2 -->
+
+        <!-- scan topic -->
+    <remap from="scan"                  to="$(arg scan_topic)"/>
+    <remap from="initialpose"           to="agv3/initialpose"/>
+    <remap from="amcl_pose"             to="agv3/amcl_pose"/>
+    <remap from="particlecloud"         to="agv3/particlecloud"/>
+
+  </node>
+</launch>
